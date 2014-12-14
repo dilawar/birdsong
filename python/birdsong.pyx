@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Sun Dec 14, 2014  11:44PM
+Last modified: Mon Dec 15, 2014  04:47AM
 
 """
     
@@ -47,10 +47,32 @@ class BirdSong:
         self.start_time = 0.0
         self.start_index = 0
         self.length = 0
+        self.algo = algorithms.Algorithms()
 
         # This calculate the baseline of note. Any note which is way to below it
         # (higher) is ignored. 
         self.baseline = 0
+
+    def filterAndSort(self):
+        """Filter notes and then sort all of them
+        """
+        # This sorting is done according to y position. Lower the startx
+        # position better chance of it being a note.
+        self.notes = sorted(self.notes, key=lambda note: note.starty)
+        validNotes = []
+        for i, n in enumerate(self.notes):
+            self.baseline = ((self.baseline * i) + n.starty) / (i+1)
+            if n.starty > 1.1 * self.baseline:
+                g.logger.debug("Note %s should be rejected." % n 
+                        + " Way too down from baseline. " 
+                        + " baseline is %s " % self.baseline  
+                        + " note is at %s " % n.starty
+                        )
+
+            else:
+                validNotes.append(n)
+        self.notes = sorted(validNotes[:], key = lambda note : note.startx)
+
 
     def insertNote(self, note):
         """Insert a found note. Make sure it is sorted.
@@ -106,26 +128,27 @@ class BirdSong:
         self.imageH.write_png(self.filename)
         pylab.close()
         self.getNotes()
-        #self.plotNotes("notes.png", createTimeStampDir = True)
-        self.plotNotes(filename = None, createTimeStampDir = True)
+        self.plotNotes("notes.png", createTimeStampDir = True)
+        #self.plotNotes(filename = None, createTimeStampDir = True)
 
     def getNotes(self, **kwargs):
         g.logger.info("Read image in GRAYSCALE mode to detect edges")
         self.image = cv2.imread(self.filename, 0)
+
         minPixelVal = int(g.config.get('note', 'maxval_startpixel'))
         if int(g.config.get('global', 'autocrop')) != 0:
+            g.logger.warn("++ Autocropping image")
             threshold = int(g.config.get('global', 'threshold'))
             self.croppedImage = algorithms.autoCrop(self.image, threshold)
         else:
             self.croppedImage = self.image
         img = np.copy(self.croppedImage)
+        self.averagePixalVal = img.mean()
+        g.logger.debug("+ Average pixal value is %s " % self.averagePixalVal)
         # Get all the notes in image and insert them into self.notes . Make sure
         # it is sorted.
-        potentialNotes = algorithms.notes(img)
-        self.notes.append(potentialNotes[0])
-        for n in potentialNotes[1:]:
-            self.insertNote(n)
-        assert len(self.notes) < len(potentialNotes), "1 or more note must have been ignored."
+        self.notes = self.algo.notes(img)
+        self.filterAndSort()
         assert len(self.notes) > 0, "There must be non-zero notes"
 
     def createDataDirs(self, createTimeStampDir = True):

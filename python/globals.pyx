@@ -44,5 +44,5 @@ sampling_freq = None
 
 # Timestamping
 st = time.time()
-stamp = datetime.datetime.fromtimestamp(st).strftime('%Y-%m-%d-%H%M')
+stamp = datetime.datetime.fromtimestamp(st).strftime('%Y-%m-%d-%H')
 
