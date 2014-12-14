@@ -1,11 +1,11 @@
 ---
+layout: page
 title: Algorithms
-author: Dilawar Singh
+comments: true
 ---
 
 ## Algorithm to detect note
 
 
 ## Algorithm to reject a note
-
 
