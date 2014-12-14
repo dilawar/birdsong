@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Sat Nov 29, 2014  06:34PM
+Last modified: Sun Dec 14, 2014  11:44PM
 
 """
     
@@ -43,12 +43,29 @@ class BirdSong:
         self.imageH = None
         self.filename = "spectogram.png"
         self.notes = []
+        self.time = 0.0
+        self.start_time = 0.0
+        self.start_index = 0
+        self.length = 0
 
     def processData(self, **kwargs):
+
         g.logger.info("STEP: Processing the speech data")
-        length = int(g.config.get('global', 'samples'))
-        g.logger.info("Processing %s samples" % length)
-        data = self.data[:length]
+        self.time = float(g.config.get('global', 'time'))
+
+        self.start_time = float(g.config.get('global', 'start_time'))
+        if self.start_time < 0.0:
+            self.start_index = int(g.config.get('global', 'start_index'))
+
+        self.start_index = int(self.start_time * g.sampling_freq)
+
+        if self.time <= 0.0:
+            length = int(g.config.get('global', 'samples'))
+
+        self.length = int( self.time * g.sampling_freq )
+        data = self.data[self.start_index:self.start_index+self.length]
+        g.logger.info("|- Processing %s to %s samples" % (self.start_index,
+            self.length))
         #data = dsp.filterData(data, g.sampling_freq)
         self.Pxx, self.frequencies, self.bins, self.imageH = dsp.spectogram(
                 data
@@ -93,6 +110,7 @@ class BirdSong:
         self.notesImage = np.empty(shape=self.croppedImage.shape, dtype=np.int8)
         titleText = [ "{}:{}".format(va[0], va[1]) for va in (g.config.items('note'))]
         ax1.set_title(" ".join(titleText))
+        ax1.set_label("Sampling freq {}".format(g.sampling_freq))
         self.notesImage.fill(255)
         for note in self.notes:
             note.plot(self.notesImage)
