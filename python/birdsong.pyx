@@ -48,8 +48,38 @@ class BirdSong:
         self.start_index = 0
         self.length = 0
 
-    def processData(self, **kwargs):
+        # This calculate the baseline of note. Any note which is way to below it
+        # (higher) is ignored. 
+        self.baseline = 0
 
+    def insertNote(self, note):
+        """Insert a found note. Make sure it is sorted.
+
+        """
+        for i, n in enumerate(self.notes):
+            if note.startx < n.startx: pass
+            else:
+                if self.updateBaseline(i, note):
+                    self.notes.insert(i, note)
+
+    def updateBaseline(self, index, note):
+        """Update the base line.
+        If the given note is below baseline (1.1 factor) then return False,
+        else return True.
+        """
+        totalNotes = len(self.notes)
+        self.baseline = (self.baseline * totalNotes + note.starty) / (totalNotes + 1)
+        if note.starty > 1.1 * self.baseline:
+            g.logger.info("++ Very much away for the baseline: {} ~ {}".format(
+                note.starty, self.baseline)
+                )
+            return False
+        else:
+            print("++ Note index {} should be inserted".format(index))
+            return True
+
+
+    def processData(self, **kwargs):
         g.logger.info("STEP: Processing the speech data")
         self.time = float(g.config.get('global', 'time'))
 
@@ -89,7 +119,14 @@ class BirdSong:
         else:
             self.croppedImage = self.image
         img = np.copy(self.croppedImage)
-        self.notes = algorithms.notes(img)
+        # Get all the notes in image and insert them into self.notes . Make sure
+        # it is sorted.
+        potentialNotes = algorithms.notes(img)
+        self.notes.append(potentialNotes[0])
+        for n in potentialNotes[1:]:
+            self.insertNote(n)
+        assert len(self.notes) < len(potentialNotes), "1 or more note must have been ignored."
+        assert len(self.notes) > 0, "There must be non-zero notes"
 
     def createDataDirs(self, createTimeStampDir = True):
         basedir = '_output'

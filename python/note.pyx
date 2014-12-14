@@ -23,14 +23,17 @@ cdef class Note:
     cdef object origin, points, xpoints, ypoints, hull
     cdef double energy, width, height
     cdef int computed, geometryComputed
+    cdef int startx, starty
 
     property points:
-        
-        def __get__(self):
-            return self.points
+        def __get__(self): return self.points
+        def __set__(self, points): self.points = points
 
-        def __set__(self, points):
-            self.points = points
+    property startx:
+        def __get__(self): return self.startx 
+
+    property starty:
+        def __get__(self): return self.starty
 
     def __cinit__(self, x, y):
         self.origin = (x, y)
@@ -43,6 +46,8 @@ cdef class Note:
         self.ypoints = []
         self.computed = 0
         self.geometryComputed = 0
+        self.startx = 0
+        self.starty = 0
 
     def computeAll(self, image):
         if self.computed != 0:
@@ -55,8 +60,10 @@ cdef class Note:
     cdef computeGeometry(self):
         if self.geometryComputed != 0:
             return 
-        self.width = max(self.xpoints) - min(self.xpoints)
-        self.height = max(self.ypoints) - min(self.ypoints)
+        self.startx = min(self.xpoints)
+        self.starty = min(self.ypoints)
+        self.width = max(self.xpoints) - self.startx
+        self.height = max(self.ypoints) - self.starty
         self.geometryComputed = 1
 
     def __repr__(self):
@@ -82,6 +89,7 @@ cdef class Note:
 # @param kwargs
 #
 # @return None.
+
     def plot(self, img, **kwargs):
         points = [[p[1], p[0]] for p in self.points]
         points = np.asarray(points)
