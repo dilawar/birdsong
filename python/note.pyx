@@ -16,11 +16,13 @@ __status__           = "Development"
 import scipy
 import numpy as np
 import cv2
+import globals as g
 
 cdef class Note:
 
     cdef object origin, points, xpoints, ypoints, hull
     cdef double energy, width, height
+    cdef int computed, geometryComputed
 
     property points:
         
@@ -39,12 +41,23 @@ cdef class Note:
         self.points = []
         self.xpoints = []
         self.ypoints = []
+        self.computed = 0
+        self.geometryComputed = 0
 
     def computeAll(self, image):
-        self.width = self.xpoints.max() - self.xpoints.min()
-        self.height = self.ypoints.max() - self.ypoints.min()
+        if self.computed != 0:
+            return
+        self.computeGeometry()
         for p in self.points:
             self.energy += image[p[0], p[1]] 
+        self.computed = 1
+
+    cdef computeGeometry(self):
+        if self.geometryComputed != 0:
+            return 
+        self.width = max(self.xpoints) - min(self.xpoints)
+        self.height = max(self.ypoints) - min(self.ypoints)
+        self.geometryComputed = 1
 
     def __repr__(self):
         msg = "Start: {}, energy {}, width {}, height {}".format(
@@ -74,4 +87,22 @@ cdef class Note:
         points = np.asarray(points)
         cv2.fillConvexPoly(img, points, 1)
 
+    
+    cpdef isValid(self):
+        """Check if a given note is acceptable or note.
+        """
+        cdef int minPixelsInNote = int(g.config.get('note', 'min_pixels'))
+        cdef int minWidthOfNote = int(g.config.get('note', 'min_width'))
+
+        if len(self.points) < minPixelsInNote:
+            g.logger.debug("Not enough points in this note. Rejecting")
+            return False
+
+        self.computeGeometry()
+        if(self.width < minWidthOfNote):
+            g.logger.info("Width of this note ({}) is not enough (< {})".format(
+                self.width, minWidthOfNote)
+                )
+            return False
+        return True
 

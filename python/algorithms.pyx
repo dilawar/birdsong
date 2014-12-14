@@ -87,9 +87,7 @@ def findNotes(image, threshold = None, **kwargs):
             if image[x, y] == minPixel:
                 note = slither(x, y, minPixel, image, threshold)
                 if note is not None:
-                    g.logger.info("Found a note: starting point {} size {}".format(
-                        (x, y), len(note.points))
-                        )
+                    g.logger.info("Found a note: %s" % note)
                     notes.append(note)
             else:
                 g.logger.debug("This starting pixel is already part of some note")
@@ -105,7 +103,6 @@ def findNotes(image, threshold = None, **kwargs):
 # @return 
 cpdef slither(startx, starty, startValue, image, threshold):
     assert(startValue == image.min()), "Min in image can't be smaller than startValue"
-    cdef int minPixelsInNote = int(g.config.get('note', 'min_pixels'))
     n = note.Note(startx, starty)
     points = []
     points.append([startx, starty])
@@ -121,13 +118,10 @@ cpdef slither(startx, starty, startValue, image, threshold):
                         points.append([a, b])
                         image[a, b] = 255
                         n.addPoint([a, b])
-    if len(n.points) < minPixelsInNote:
-        g.logger.debug("Not enough points in this note. Rejecting %s " % n)
-        return None
-    else:
-        g.logger.debug("A note with %s points found" % len(n.points))
+    if n.isValid():
         return n
-
+    return None
+    
 ##
 # @brief Find points which belongs to different edges.
 #
