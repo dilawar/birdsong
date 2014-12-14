@@ -69,7 +69,7 @@ cdef class Note:
         return msg
 
     def addPoint(self, point):
-        x, y = point
+        y, x = point
         self.xpoints.append(x)
         self.ypoints.append(y)
         self.points.append(point)
