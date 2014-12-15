@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Mon Dec 15, 2014  02:16PM
+Last modified: Mon Dec 15, 2014  03:41PM
 
 """
     
@@ -104,20 +104,15 @@ class BirdSong:
         self.time = float(g.config.get('global', 'time'))
 
         self.start_time = float(g.config.get('global', 'start_time'))
-        if self.start_time < 0.0:
-            self.start_index = int(g.config.get('global', 'start_index'))
-
         self.start_index = int(self.start_time * g.sampling_freq)
 
         if self.time <= 0.0:
-            self.length = int(g.config.get('global', 'samples'))
-        if self.length < 1:
-            self.length = -1
+            stop = -1
+        else:
+            stop = self.start_index + (self.time * g.sampling_freq)
 
-        self.length = int( self.time * g.sampling_freq )
-        data = self.data[self.start_index:self.start_index+self.length]
-        g.logger.info("|- Processing %s to %s samples" % (self.start_index,
-            self.length))
+        data = self.data[self.start_index:stop]
+        g.logger.info("|- Processing index %s to %s" % (self.start_index, stop))
         #data = dsp.filterData(data, g.sampling_freq)
         self.Pxx, self.frequencies, self.bins, self.imageH = dsp.spectogram(
                 data
@@ -128,8 +123,8 @@ class BirdSong:
         self.imageH.write_png(self.filename)
         pylab.close()
         self.getNotes()
-        self.plotNotes("notes.png")
-        #self.plotNotes(filename = None, createTimeStampDir = True)
+        #self.plotNotes("notes.png")
+        self.plotNotes(filename = None)
 
     def getNotes(self, **kwargs):
         g.logger.info("Read image in GRAYSCALE mode to detect edges")
@@ -158,8 +153,9 @@ class BirdSong:
         start = []
         for n in self.notes:
             start.append(n.startx)
-        pylab.plot(start)
-        pylab.show()
+        #pylab.plot(start, range(len(start)), '*')
+        #pylab.show()
+        print start
 
 
     def plotNotes(self, filename = None):
