@@ -2,7 +2,7 @@
 
     All of my algorithms to detect pattern in image should be here.
 
-Last modified: Sat Nov 29, 2014  01:35PM
+Last modified: Mon Dec 15, 2014  05:47AM
 
 """
     
@@ -37,7 +37,7 @@ cdef class Algorithms:
     # @param kwargs
     #
     # @return  Image with deleted rows.
-    cpdef autoCrop(self, image, threshold):
+    cdef autoCrop(self, image, threshold):
         """Delete rows which do not have any pixel less than the given value"""
         cdef int i
         rowsToDelete = []
@@ -62,8 +62,9 @@ cdef class Algorithms:
     # @param kwargs
     #
     # @return 
-    def searchForPixels(self, image, pixelVal):
+    cdef searchForPixels(self, image, pixelVal):
         """Search for all pixels of a given value in image """
+        cdef int i
         pixels = []
         for i, row in enumerate(image):
             for j, v in enumerate(row):
@@ -72,7 +73,7 @@ cdef class Algorithms:
         assert len(pixels) > 0, "There must be at least one pixel of value %s" % pixelVal
         return pixels
 
-    def findNotes(self, threshold = None, **kwargs):
+    cdef findNotes(self, threshold = None):
         """Find notes in the given image """
         notes = []
         g.logger.info("Find notes in the image")
@@ -81,10 +82,13 @@ cdef class Algorithms:
         # 3. Delete the note from the figure (make all pixel equal to 255).
         # 4. Go to step 1.
         minPixel = self.image.min()
-        maxvalOfStartPixel = int(g.config.get('note', 'maxval_startpixel'))
-
-        if not threshold:
-            threshold = int(g.config.get('note', 'threshold'))
+        fracOfAvg = float(g.config.get('note', 'maxval_pixal')) 
+        maxvalOfStartPixel = fracOfAvg * self.image.mean()
+        threshold = float(g.config.get('note', 'boundary_threshold')) * maxvalOfStartPixel
+        g.logger.debug("++ Slither start point {}, threshold {}".format(
+            maxvalOfStartPixel
+            , threshold)
+            )
 
         while minPixel < maxvalOfStartPixel:
             minPixel = self.image.min()
@@ -108,8 +112,9 @@ cdef class Algorithms:
     # @param image
     #
     # @return 
-    cpdef slither(self, startx, starty, startValue, threshold):
+    cdef slither(self, startx, starty, startValue, threshold):
         assert(startValue == self.image.min()), "Min in image can't be smaller than startValue"
+        assert threshold > startValue, "Threshold should be larger than startval"
         n = note.Note(startx, starty)
         points = []
         points.append([startx, starty])
@@ -121,7 +126,7 @@ cdef class Algorithms:
                 n.addPoint([x,y])
                 for a in [x-1, x, x+1]:
                     for b in [y-1, y, y+1]:
-                        if (self.image[a, b] - startValue) < threshold:
+                        if self.image[a, b] < threshold:
                             points.append([a, b])
                             self.image[a, b] = 255
                             n.addPoint([a, b])

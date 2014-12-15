@@ -135,7 +135,6 @@ class BirdSong:
         g.logger.info("Read image in GRAYSCALE mode to detect edges")
         self.image = cv2.imread(self.filename, 0)
 
-        minPixelVal = int(g.config.get('note', 'maxval_startpixel'))
         if int(g.config.get('global', 'autocrop')) != 0:
             g.logger.warn("++ Autocropping image")
             threshold = int(g.config.get('global', 'threshold'))
