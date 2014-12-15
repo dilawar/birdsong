@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Mon Dec 15, 2014  03:41PM
+Last modified: Tue Dec 16, 2014  01:34AM
 
 """
     
@@ -25,6 +25,7 @@ import pylab
 import algorithms
 
 import os
+import sys
 
 class BirdSong:
 
@@ -69,9 +70,10 @@ class BirdSong:
         self.notes = sorted(self.notes, key=lambda note: note.starty)
         validNotes = []
         for i, n in enumerate(self.notes):
-            self.baseline = ((self.baseline * i) + n.starty) / (i+1)
+            assert self.baseline >= 0, "Expecting > 0, got %s" % self.baseline
+            self.baseline = int(((self.baseline * i) + n.starty) / (i+1))
             if n.starty > 1.1 * self.baseline:
-                g.logger.debug("Note %s should be rejected." % n 
+                g.logger.info("[REJECTED] %s ." % n 
                         + " Way too down from baseline. " 
                         + " baseline is %s " % self.baseline  
                         + " note is at %s " % n.starty
@@ -109,7 +111,7 @@ class BirdSong:
         if self.time <= 0.0:
             stop = -1
         else:
-            stop = self.start_index + (self.time * g.sampling_freq)
+            stop = self.start_index + int(self.time * g.sampling_freq)
 
         data = self.data[self.start_index:stop]
         g.logger.info("|- Processing index %s to %s" % (self.start_index, stop))
@@ -120,7 +122,10 @@ class BirdSong:
                 , output = None
                 )
         self.imageMat = self.imageH.get_array()
-        self.imageH.write_png(self.filename)
+        # TODO: We should not save the png file rather work directory on numpy
+        # array.
+        g.logger.debug("+ Saving spectogram to %s " % self.filename)
+        pylab.imsave(self.filename, self.imageMat)
         pylab.close()
         self.getNotes()
         #self.plotNotes("notes.png")
@@ -129,8 +134,10 @@ class BirdSong:
     def getNotes(self, **kwargs):
         g.logger.info("Read image in GRAYSCALE mode to detect edges")
         self.image = cv2.imread(self.filename, 0)
+        assert self.image.max() <= 256, "Expecting 256, got %s" % self.image.max()
 
         if int(g.config.get('global', 'autocrop')) != 0:
+            raise Exception("Developer error: Dont' crop")
             g.logger.warn("++ Autocropping image")
             threshold = self.image.max() * float(g.config.get('global', 'crop_threshold'))
             self.croppedImage = self.algo.autoCrop(self.image, threshold)
@@ -142,6 +149,7 @@ class BirdSong:
         # Get all the notes in image and insert them into self.notes . Make sure
         # it is sorted.
         self.notes = self.algo.notes(img)
+        assert len(self.notes) > 0, "There must be non-zero notes"
         self.filterAndSort()
         assert len(self.notes) > 0, "There must be non-zero notes"
         self.findSongs()

@@ -121,6 +121,7 @@ cdef class Algorithms:
         while points:
             x, y = points.pop()
             self.image[x, y] = 255
+            if x == 0 or y == 0: break
             # Make sure we never go beyound the row - 1 and column - 1 index.
             if x + 1 < self.image.shape[0] and y + 1 < self.image.shape[1]:
                 n.addPoint([x,y])
@@ -147,6 +148,7 @@ cdef class Algorithms:
         # locate islands which belongs to notes. The islands must be separated by
         # some no which we do not know.
         self.image = image
+        assert self.image.max() <= 256, "All pixels must be 0-255"
         notes = self.findNotes()
         return notes
 

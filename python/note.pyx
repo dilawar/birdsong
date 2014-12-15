@@ -58,13 +58,12 @@ cdef class Note:
         self.computed = 1
 
     cdef computeGeometry(self):
-        if self.geometryComputed != 0:
-            return 
-        self.startx = min(self.xpoints)
-        self.starty = min(self.ypoints)
-        self.width = max(self.xpoints) - self.startx
-        self.height = max(self.ypoints) - self.starty
-        self.geometryComputed = 1
+        if self.geometryComputed == 0:
+            self.startx = min(self.xpoints)
+            self.starty = min(self.ypoints)
+            self.width = max(self.xpoints) - self.startx
+            self.height = max(self.ypoints) - self.starty
+            self.geometryComputed = 1
 
     def __repr__(self):
         msg = "Start: {}, energy {}, width {}, height {}".format(
@@ -76,6 +75,7 @@ cdef class Note:
         return msg
 
     def addPoint(self, point):
+        assert point >= [0, 0], "Got %s " % point
         y, x = point
         self.xpoints.append(x)
         self.ypoints.append(y)
