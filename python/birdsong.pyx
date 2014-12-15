@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Mon Dec 15, 2014  06:56AM
+Last modified: Mon Dec 15, 2014  02:16PM
 
 """
     
@@ -128,7 +128,7 @@ class BirdSong:
         self.imageH.write_png(self.filename)
         pylab.close()
         self.getNotes()
-        self.plotNotes("notes.png", createTimeStampDir = True)
+        self.plotNotes("notes.png")
         #self.plotNotes(filename = None, createTimeStampDir = True)
 
     def getNotes(self, **kwargs):
@@ -149,19 +149,14 @@ class BirdSong:
         self.notes = self.algo.notes(img)
         self.filterAndSort()
         assert len(self.notes) > 0, "There must be non-zero notes"
+        self.findSongs()
 
-    def createDataDirs(self, createTimeStampDir = True):
-        basedir = '_output'
-        if not os.path.isdir(basedir):
-            os.makedirs(basedir)
-        if createTimeStampDir:
-            dirpath = os.path.join(basedir, g.stamp)
-            if not os.path.isdir(dirpath): os.makedirs(dirpath)
-            else:
-                dirpath = '_output'
-        return dirpath
+    def findSongs(self):
+        """Find songs in collection of notes.
+        """
+        g.logger.debug("+ Finding songs in recording ... ")
 
-    def plotNotes(self, filename = None, createTimeStampDir = True):
+    def plotNotes(self, filename = None):
         # Plot the notes.
         fig = pylab.figure()
         ax1 = fig.add_subplot(211)
@@ -178,7 +173,7 @@ class BirdSong:
         if not filename:
             pylab.show()
         else:
-            dirpath = self.createDataDirs(createTimeStampDir)
-            filename = os.path.join(dirpath, filename)
+            dirPath = g.createDataDirs()
+            filename = os.path.join(dirPath, filename)
             g.logger.info("Saving notes and image to %s" % filename)
             pylab.savefig(filename)
