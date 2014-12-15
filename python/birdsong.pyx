@@ -60,7 +60,9 @@ class BirdSong:
         # This sorting is done according to y position. Lower the startx
         # position better chance of it being a note.
         if self.isCropped:
-            g.logger.info("Image was cropped. Not doing the baseline test")
+            g.logger.info("Image was cropped before processing." 
+                " Not doing the base-line test"
+                )
             self.notes = sorted(self.notes, key=lambda note: note.startx)
             return 
 
