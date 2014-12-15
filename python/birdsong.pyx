@@ -155,6 +155,12 @@ class BirdSong:
         """Find songs in collection of notes.
         """
         g.logger.debug("+ Finding songs in recording ... ")
+        start = []
+        for n in self.notes:
+            start.append(n.startx)
+        pylab.plot(start)
+        pylab.show()
+
 
     def plotNotes(self, filename = None):
         # Plot the notes.
