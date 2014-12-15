@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Mon Dec 15, 2014  04:47AM
+Last modified: Mon Dec 15, 2014  06:56AM
 
 """
     
@@ -48,6 +48,7 @@ class BirdSong:
         self.start_index = 0
         self.length = 0
         self.algo = algorithms.Algorithms()
+        self.isCropped = int(g.config.get('global', 'autocrop'))
 
         # This calculate the baseline of note. Any note which is way to below it
         # (higher) is ignored. 
@@ -58,6 +59,11 @@ class BirdSong:
         """
         # This sorting is done according to y position. Lower the startx
         # position better chance of it being a note.
+        if self.isCropped:
+            g.logger.info("Image was cropped. Not doing the baseline test")
+            self.notes = sorted(self.notes, key=lambda note: note.startx)
+            return 
+
         self.notes = sorted(self.notes, key=lambda note: note.starty)
         validNotes = []
         for i, n in enumerate(self.notes):
@@ -74,16 +80,6 @@ class BirdSong:
         self.notes = sorted(validNotes[:], key = lambda note : note.startx)
 
 
-    def insertNote(self, note):
-        """Insert a found note. Make sure it is sorted.
-
-        """
-        for i, n in enumerate(self.notes):
-            if note.startx < n.startx: pass
-            else:
-                if self.updateBaseline(i, note):
-                    self.notes.insert(i, note)
-
     def updateBaseline(self, index, note):
         """Update the base line.
         If the given note is below baseline (1.1 factor) then return False,
@@ -97,7 +93,7 @@ class BirdSong:
                 )
             return False
         else:
-            print("++ Note index {} should be inserted".format(index))
+            #print("++ Note index {} should be inserted".format(index))
             return True
 
 
@@ -112,7 +108,9 @@ class BirdSong:
         self.start_index = int(self.start_time * g.sampling_freq)
 
         if self.time <= 0.0:
-            length = int(g.config.get('global', 'samples'))
+            self.length = int(g.config.get('global', 'samples'))
+        if self.length < 1:
+            self.length = -1
 
         self.length = int( self.time * g.sampling_freq )
         data = self.data[self.start_index:self.start_index+self.length]
@@ -137,8 +135,8 @@ class BirdSong:
 
         if int(g.config.get('global', 'autocrop')) != 0:
             g.logger.warn("++ Autocropping image")
-            threshold = int(g.config.get('global', 'threshold'))
-            self.croppedImage = algorithms.autoCrop(self.image, threshold)
+            threshold = self.image.max() * float(g.config.get('global', 'crop_threshold'))
+            self.croppedImage = self.algo.autoCrop(self.image, threshold)
         else:
             self.croppedImage = self.image
         img = np.copy(self.croppedImage)

@@ -37,7 +37,7 @@ cdef class Algorithms:
     # @param kwargs
     #
     # @return  Image with deleted rows.
-    cdef autoCrop(self, image, threshold):
+    cpdef autoCrop(self, image, threshold):
         """Delete rows which do not have any pixel less than the given value"""
         cdef int i
         rowsToDelete = []
