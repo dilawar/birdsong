@@ -1,0 +1,12 @@
+\section{Introduction}
+
+This literate program read bird-songs stored in a \texttt{aiff} file and extract
+notes. It is written in python language and required \textbf{numpy},
+textbf{scipy}, \textbf{opencv} libraries. To plot, we use \textbf{pylab} library
+of python.
+
+
+<<*>>=
+
+@ global
+
