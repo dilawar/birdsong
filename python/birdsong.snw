@@ -16,7 +16,7 @@ command line, and parameters are stored in a config file described in section
 
 The main script is following.
 
-<<main.py>>=
+<<src/main.py>>=
 <<import modules>>
 <<functions>>
 <<create parser>>
