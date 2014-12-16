@@ -3,7 +3,6 @@
 import sys
 try:
     from mingus.midi import fluidsynth   
-    fluidsynth.init('/usr/share/sounds/sf2/FluidR3_GM.sf2',"alsa")
 except:
     print("Install fluishsynth library and mingus on your system and try again")
     sys.exit(0)
@@ -11,6 +10,7 @@ import os
 import time
 
 def playNotes(notes, xscale = 0.01):
+    fluidsynth.init('/usr/share/sounds/sf2/FluidR3_GM.sf2',"alsa")
     currTime = 0
     for n in notes:
         waitTime = n.startx * xscale - currTime
@@ -18,6 +18,8 @@ def playNotes(notes, xscale = 0.01):
         fluidsynth.play_Note(pow(n.energy, 0.2), 0, 100)
         print("Played %s, Waiting for %s " % (n, waitTime))
         time.sleep(waitTime)
+
+    fluidsynth.stop_everything()
 
 class Note:
 

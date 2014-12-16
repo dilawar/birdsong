@@ -31,6 +31,9 @@ def playNotes(notes, xscale = 0.01):
         waitTime = n.startx * xscale - currTime
         currTime = n.startx * xscale
         fluidsynth.play_Note(n.height, 1, 127)
-        print("Waiting for %s " % waitTime)
+        print("Played %s " % n)
+        #print("Waiting for %s " % waitTime)
         time.sleep(waitTime)
+
+    fluidsynth.stop_everything()
 

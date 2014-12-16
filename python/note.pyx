@@ -85,7 +85,7 @@ cdef class Note:
                     "computed. Please use self.computeAll(img) function at "
                     " appropriate place"
                     )
-        msg = "startx={},starty={},width={},height={},energy={},points={}".format(
+        msg = "startx={};starty={};width={};height={};energy={};points={}".format(
                 self.startx
                 , self.starty
                 , self.width
