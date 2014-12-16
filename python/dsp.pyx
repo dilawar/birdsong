@@ -23,8 +23,8 @@ cpdef filterData(data, samplingFreq, windowSize = 4300):
     ft = signal.lfilter(b, a, data)
     return ft
 
-cpdef spectogram(data, samplingFreq, output=None):
-    g.logger.info("Computing spectogram: samplingFreq %s " % samplingFreq)
+cpdef spectogram(data, samplingFreq):
+    g.logger.info("++ Computing spectogram: samplingFreq %s " % samplingFreq)
     nfft = 256
     Pxx, freqs, bins, im = pylab.specgram(
             data
@@ -32,10 +32,6 @@ cpdef spectogram(data, samplingFreq, output=None):
             , NFFT = nfft
             , window = pylab.window_hanning
             )
-    filename = output
-    if filename:
-        g.logger.info("Saving spectogram to %s" % filename)
-        pylab.savefig(filename)
     return (Pxx, freqs, bins, im)
     
 

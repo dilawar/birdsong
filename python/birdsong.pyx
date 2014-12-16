@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Tue Dec 16, 2014  01:34AM
+Last modified: Tue Dec 16, 2014  12:09PM
 
 """
     
@@ -60,6 +60,7 @@ class BirdSong:
         """
         # This sorting is done according to y position. Lower the startx
         # position better chance of it being a note.
+        self.isCropped = True
         if self.isCropped:
             g.logger.info("Image was cropped before processing." 
                 " Not doing the base-line test"
@@ -119,11 +120,30 @@ class BirdSong:
         self.Pxx, self.frequencies, self.bins, self.imageH = dsp.spectogram(
                 data
                 , g.sampling_freq
-                , output = None
                 )
         self.imageMat = self.imageH.get_array()
+
+        # Use Wiener filter for noise-removal. Median-filter does not work at
+        # all. Don't even think about using it.
+        g.logger.info("+ Using wiener filter of size 5 on the image")
+        self.imageMat = scipy.signal.wiener(self.imageMat, 5)
+
+        zoom = [float(g.config.get('global', 'y_zoom'))
+                , float(g.config.get('global', 'x_zoom'))
+                ]
+
+        g.logger.warn("Zooming in image: %s " % zoom)
+        self.imageMat = scipy.ndimage.interpolation.zoom(
+                self.imageMat
+                , zoom
+                , order = 5
+                , prefilter = True
+                )
+
         # TODO: We should not save the png file rather work directory on numpy
         # array.
+
+        #self.testImage()
         g.logger.debug("+ Saving spectogram to %s " % self.filename)
         pylab.imsave(self.filename, self.imageMat)
         pylab.close()
@@ -187,3 +207,22 @@ class BirdSong:
             filename = os.path.join(dirPath, filename)
             g.logger.info("Saving notes and image to %s" % filename)
             pylab.savefig(filename)
+
+    def testImage(self):
+        """Test the given image"""
+        g.logger.debug("[TEST] Image created")
+        assert self.Pxx.shape == self.imageMat.shape
+        self.imageH.write_png("/tmp/temp.png", noscale=True)
+        image = pylab.imread('/tmp/temp.png')
+        pylab.figure(1)
+        pylab.subplot(211)
+        pylab.imshow(self.imageMat)
+        pylab.subplot(212)
+        pylab.imshow(image)
+        pylab.show()
+        
+
+        
+
+
+
