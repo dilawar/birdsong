@@ -31,15 +31,19 @@ cdef class Note:
 
     property startx:
         def __get__(self): return self.startx 
+        def __set__(self, val): self.startx = val
 
     property starty:
         def __get__(self): return self.starty
+        def __set__(self, v): self.starty = v
 
     property width:
         def __get__(self): return self.width 
+        def __set__(self, v): self.width = v
 
     property height:
         def __get__(self): return self.height
+        def __set__(self, v): self.height = v
 
     def __cinit__(self, x, y):
         self.origin = (x, y)

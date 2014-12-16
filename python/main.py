@@ -1,6 +1,6 @@
 """ Starting point of the program.
 
-Last modified: Thu Nov 27, 2014  10:37PM
+Last modified: Tue Dec 16, 2014  04:30PM
 
 """
     
@@ -40,21 +40,47 @@ if __name__ == '__main__':
     # Argument parser.
     description = '''Process bird songs'''
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--file', '-f', metavar='input_file'
-            #, nargs=1
-            #, action='append'
+    
+    # Add mutually exclusive options
+    action = parser.add_mutually_exclusive_group(required=True)
+
+    parser.add_argument('--input_song', '-in'
             , required = True
-            , help = 'Input song file in aifc format'
+            , help = 'Recorded song (aiff format)'
             )
+
+    action.add_argument('--extract-notes', '-e'
+            , action = 'store_true'
+            , help = 'Input song file in aifc format to extract notes.'
+            )
+
+
+    action.add_argument("--process_notes", "-pn"
+            , required = False
+            , action = 'store_true'
+            , help = "Process notes stored in this file"
+            )
+
+    parser.add_argument('--note_file', '-nf'
+            , required = False
+            , default = 'notes.dat'
+            , type = argparse.FileType('r')
+            , help = 'File where notes are stored and read from'
+            )
+
     parser.add_argument('--config', '-c'
             , metavar='config file'
             , default = 'birdsongs.conf'
+            , required = True
             , help = "Configuration file to fine tune the processing"
             )
+
     class Args: pass 
     args = Args()
     parser.parse_args(namespace=args)
     config = configParser(args.config)
+    g.args_ = args
+
     config.add_section("audio")
-    config.set("audio", "filepath", args.file)
+    config.set("audio", "filepath", args.input_song)
     main(config)

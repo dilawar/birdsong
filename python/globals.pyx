@@ -43,6 +43,8 @@ logger.addHandler(ch)
 config = None
 sampling_freq = None
 
+args_ = None 
+
 # Timestamping
 st = time.time()
 stamp = datetime.datetime.fromtimestamp(st).strftime('%Y-%m-%d-%H')
