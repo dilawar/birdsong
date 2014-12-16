@@ -171,8 +171,8 @@ class BirdSong:
         g.logger.debug("+ Average pixal value is %s " % self.averagePixalVal)
         # Get all the notes in image and insert them into self.notes . Make sure
         # it is sorted.
-        self.notes = self.algo.notes(self.croppedImage)
-        [ n.computeAll(img) for n in self.notes ]
+        self.notes = self.algo.notes(img)
+        [ n.computeAll(self.croppedImage) for n in self.notes ]
 
         assert len(self.notes) > 0, "There must be non-zero notes"
         self.filterAndSort()
@@ -183,7 +183,7 @@ class BirdSong:
             g.logger.info("Saving all notes : %s" % pickleFile)
             with open(pickleFile, "wb") as f:
                 for n in self.notes:
-                    f.write(n.__repr__()+"\n")
+                    f.write(n.show()+"\n")
         
         self.play(self.notes)
         self.findSongs()

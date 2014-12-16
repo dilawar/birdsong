@@ -56,12 +56,11 @@ cdef class Note:
         self.starty = 0
 
     def computeAll(self, image):
-        if self.computed != 0:
-            return
-        self.computeGeometry()
-        for p in self.points:
-            self.energy += image[p[0], p[1]] 
-        self.computed = 1
+        if self.computed == 0:
+            self.computeGeometry()
+            for p in self.points:
+                self.energy += image[p[0], p[1]] 
+            self.computed = 1
 
     cdef computeGeometry(self):
         if self.geometryComputed == 0:
@@ -80,8 +79,22 @@ cdef class Note:
                 )
         return msg
 
-    def __str__(self):
-        return self.__repr__()
+    def show(self):
+        if self.computed == 0:
+            raise UserWarning("One or more parameter(s) of your note is not "
+                    "computed. Please use self.computeAll(img) function at "
+                    " appropriate place"
+                    )
+        msg = "startx={},starty={},width={},height={},energy={},points={}".format(
+                self.startx
+                , self.starty
+                , self.width
+                , self.height
+                , self.energy
+                , self.points 
+                )
+        return msg
+
 
     def addPoint(self, point):
         assert point >= [0, 0], "Got %s " % point
