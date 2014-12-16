@@ -184,8 +184,6 @@ class BirdSong:
             with open(pickleFile, "wb") as f:
                 for n in self.notes:
                     f.write(n.show()+"\n")
-        
-        self.play(self.notes)
         self.findSongs()
 
     def findSongs(self):
