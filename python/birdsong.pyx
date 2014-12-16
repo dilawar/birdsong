@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Tue Dec 16, 2014  12:09PM
+Last modified: Tue Dec 16, 2014  02:25PM
 
 """
     
@@ -20,6 +20,8 @@ import logging
 import dsp 
 import cv2
 import scipy
+import numpy
+from scipy import ndimage
 import numpy as np
 import pylab
 import algorithms
@@ -51,16 +53,15 @@ class BirdSong:
         self.algo = algorithms.Algorithms()
         self.isCropped = int(g.config.get('global', 'autocrop'))
 
-        # This calculate the baseline of note. Any note which is way to below it
-        # (higher) is ignored. 
-        self.baseline = 0
+        # Bottom-line of notes, anything near to it are ingnored. These are
+        # caused by low-frequencies sound.
+        self.bottomline = 0
 
     def filterAndSort(self):
         """Filter notes and then sort all of them
         """
         # This sorting is done according to y position. Lower the startx
         # position better chance of it being a note.
-        self.isCropped = True
         if self.isCropped:
             g.logger.info("Image was cropped before processing." 
                 " Not doing the base-line test"
@@ -70,16 +71,18 @@ class BirdSong:
 
         self.notes = sorted(self.notes, key=lambda note: note.starty)
         validNotes = []
+
+        # Calculate the bottomline here
+        startys = [ n.starty for n in self.notes ]
+        self.bottomline = max(startys)
+
         for i, n in enumerate(self.notes):
-            assert self.baseline >= 0, "Expecting > 0, got %s" % self.baseline
-            self.baseline = int(((self.baseline * i) + n.starty) / (i+1))
-            if n.starty > 1.1 * self.baseline:
+            if n.starty > 0.9 * self.bottomline:
                 g.logger.info("[REJECTED] %s ." % n 
-                        + " Way too down from baseline. " 
-                        + " baseline is %s " % self.baseline  
+                        + " Way too close to bottomline " 
+                        + " bottomline is %s " % self.bottomline  
                         + " note is at %s " % n.starty
                         )
-
             else:
                 validNotes.append(n)
         self.notes = sorted(validNotes[:], key = lambda note : note.startx)
@@ -133,7 +136,7 @@ class BirdSong:
                 ]
 
         g.logger.warn("Zooming in image: %s " % zoom)
-        self.imageMat = scipy.ndimage.interpolation.zoom(
+        self.imageMat = ndimage.interpolation.zoom(
                 self.imageMat
                 , zoom
                 , order = 5
@@ -168,10 +171,21 @@ class BirdSong:
         g.logger.debug("+ Average pixal value is %s " % self.averagePixalVal)
         # Get all the notes in image and insert them into self.notes . Make sure
         # it is sorted.
-        self.notes = self.algo.notes(img)
+        self.notes = self.algo.notes(self.croppedImage)
+        [ n.computeAll(img) for n in self.notes ]
+
         assert len(self.notes) > 0, "There must be non-zero notes"
         self.filterAndSort()
         assert len(self.notes) > 0, "There must be non-zero notes"
+
+        if g.config.get("note", "save_notes").strip() in ["yes", "Yes", "YES"]:
+            pickleFile = g.config.get('note', 'save_file')
+            g.logger.info("Saving all notes : %s" % pickleFile)
+            with open(pickleFile, "wb") as f:
+                for n in self.notes:
+                    f.write(n.__repr__()+"\n")
+        
+        self.play(self.notes)
         self.findSongs()
 
     def findSongs(self):
@@ -183,7 +197,6 @@ class BirdSong:
             start.append(n.startx)
         #pylab.plot(start, range(len(start)), '*')
         #pylab.show()
-        print start
 
 
     def plotNotes(self, filename = None):
@@ -220,9 +233,9 @@ class BirdSong:
         pylab.subplot(212)
         pylab.imshow(image)
         pylab.show()
+
+    def play(self, notes):
+        print("Playing notes")
+        import piano
+        piano.playNotes(notes)
         
-
-        
-
-
-

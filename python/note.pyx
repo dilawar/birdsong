@@ -35,6 +35,12 @@ cdef class Note:
     property starty:
         def __get__(self): return self.starty
 
+    property width:
+        def __get__(self): return self.width 
+
+    property height:
+        def __get__(self): return self.height
+
     def __cinit__(self, x, y):
         self.origin = (x, y)
         self.energy = 0.0
@@ -66,13 +72,16 @@ cdef class Note:
             self.geometryComputed = 1
 
     def __repr__(self):
-        msg = "Start: {}, energy {}, width {}, height {}".format(
+        msg = "start={},energy={},width={},height={}".format(
                 self.origin
                 , self.energy
                 , self.width
                 , self.height
                 )
         return msg
+
+    def __str__(self):
+        return self.__repr__()
 
     def addPoint(self, point):
         assert point >= [0, 0], "Got %s " % point
