@@ -1,0 +1,19 @@
+This describes the |main| function for this application, this controls the
+run-time behaviour of this program. 
+
+Various parameters of this application are stored in a config file, and tasks
+are given on the command line. 
+
+<<main function with control flow>>=
+<<config file>>
+<<argument parser>>
+
+def main():
+    <<parser argument>>
+    <<read config file>>
+    <<control flow of program>>
+
+if __name__ == "__main__":
+    main()
+@
+

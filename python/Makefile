@@ -16,16 +16,15 @@ SHELL = /bin/sh
 NOTANGLE = notangle 
 NOWEAVE = noweave # it implies -n option. Automatic latex wrapper will not be includeded in out tex file.
 PYC = python
-APP = birdsong
-SRCS = birdsong.snw
+APP = chidiya
+SRCS = birdsong.snw main.snw
 PYX = $(SRCS:.snw=.pyx)
 TEX = $(SRCS:.snw=.tex)
 
-$(APP) : $(PYX)
+$(APP) : $(SRCS)
+	$(NOTANGLE) $(SRCS) > src/$(APP).pyx
+	cd src && ./run.sh
 	echo "Done"
-
-%.pyx : %.snw
-	$(NOTANGLE) $< > ./src/$@
 
 dvi : $(TEX)
 	echo "Creating tex files"
@@ -37,6 +36,3 @@ dvi : $(TEX)
 
 pdf : $(TEX)
 	cd docs && latexmk 
-
-purge :
-	rm -rf ./docs/* ./src/* 

@@ -1,1 +1,0 @@
-/public/dilawars/Scripts/pynoweb.py
