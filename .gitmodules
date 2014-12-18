@@ -1,3 +1,6 @@
 [submodule "external/DSPFilters"]
 	path = external/DSPFilters
 	url = git@github.com:vinniefalco/DSPFilters
+[submodule "python/pyhelper"]
+	path = python/pyhelper
+	url = git@github.com:dilawar/pyhelper
