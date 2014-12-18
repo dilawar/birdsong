@@ -125,8 +125,8 @@ cdef class Note:
     cpdef isValid(self):
         """Check if a given note is acceptable or note.
         """
-        cdef int minPixelsInNote = int(g.config.get('note', 'min_pixels'))
-        cdef int minWidthOfNote = int(g.config.get('note', 'min_width'))
+        cdef int minPixelsInNote = int(g.config_.get('note', 'min_pixels'))
+        cdef int minWidthOfNote = int(g.config_.get('note', 'min_width'))
 
         if len(self.points) < minPixelsInNote:
             g.logger.debug("Not enough points in this note. Rejecting")

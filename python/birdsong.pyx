@@ -28,6 +28,7 @@ import algorithms
 
 import os
 import sys
+import pyhelper.print_utils as pu
 
 class BirdSong:
 
@@ -51,7 +52,7 @@ class BirdSong:
         self.start_index = 0
         self.length = 0
         self.algo = algorithms.Algorithms()
-        self.isCropped = int(g.config.get('global', 'autocrop'))
+        self.isCropped = int(g.config_.get('global', 'autocrop'))
 
         # Bottom-line of notes, anything near to it are ingnored. These are
         # caused by low-frequencies sound.
@@ -107,9 +108,9 @@ class BirdSong:
 
     def processData(self, **kwargs):
         g.logger.info("STEP: Processing the speech data")
-        self.time = float(g.config.get('global', 'time'))
+        self.time = float(g.config_.get('global', 'time'))
 
-        self.start_time = float(g.config.get('global', 'start_time'))
+        self.start_time = float(g.config_.get('global', 'start_time'))
         self.start_index = int(self.start_time * g.sampling_freq)
 
         if self.time <= 0.0:
@@ -131,8 +132,8 @@ class BirdSong:
         g.logger.info("+ Using wiener filter of size 5 on the image")
         self.imageMat = scipy.signal.wiener(self.imageMat, 5)
 
-        zoom = [float(g.config.get('global', 'y_zoom'))
-                , float(g.config.get('global', 'x_zoom'))
+        zoom = [float(g.config_.get('global', 'y_zoom'))
+                , float(g.config_.get('global', 'x_zoom'))
                 ]
 
         g.logger.warn("Zooming in image: %s " % zoom)
@@ -159,10 +160,10 @@ class BirdSong:
         self.image = cv2.imread(self.filename, 0)
         assert self.image.max() <= 256, "Expecting 256, got %s" % self.image.max()
 
-        if int(g.config.get('global', 'autocrop')) != 0:
+        if int(g.config_.get('global', 'autocrop')) != 0:
             raise Exception("Developer error: Dont' crop")
             g.logger.warn("++ Autocropping image")
-            threshold = self.image.max() * float(g.config.get('global', 'crop_threshold'))
+            threshold = self.image.max() * float(g.config_.get('global', 'crop_threshold'))
             self.croppedImage = self.algo.autoCrop(self.image, threshold)
         else:
             self.croppedImage = self.image
@@ -178,12 +179,16 @@ class BirdSong:
         self.filterAndSort()
         assert len(self.notes) > 0, "There must be non-zero notes"
 
-        if g.config.get("note", "save_notes").strip() in ["yes", "Yes", "YES"]:
-            pickleFile = g.config.get('note', 'save_file')
-            g.logger.info("Saving all notes : %s" % pickleFile)
-            with open(pickleFile, "wb") as f:
-                for n in self.notes:
-                    f.write(n.show()+"\n")
+
+        pu.dump("INFO", [ "Writings notes to {}".format(g.args_.note_file)])
+
+
+        #if g.config_.get("note", "save_notes").strip() in ["yes", "Yes", "YES"]:
+            #pickleFile = g.config_.get('note', 'save_file')
+            #g.logger.info("Saving all notes : %s" % pickleFile)
+            #with open(pickleFile, "wb") as f:
+                #for n in self.notes:
+        #            f.write(n.show()+"\n")
         self.findSongs()
 
     def findSongs(self):
@@ -203,7 +208,7 @@ class BirdSong:
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
         self.notesImage = np.empty(shape=self.croppedImage.shape, dtype=np.int8)
-        titleText = [ "{}:{}".format(va[0], va[1]) for va in (g.config.items('note'))]
+        titleText = [ "{}:{}".format(va[0], va[1]) for va in (g.config_.items('note'))]
         ax1.set_title(" ".join(titleText))
         ax1.set_label("Sampling freq {}".format(g.sampling_freq))
         self.notesImage.fill(255)

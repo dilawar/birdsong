@@ -20,11 +20,11 @@ import datetime
 import os
 
 # create logger with 'spam_application'
-logger = logging.getLogger('birdsong')
+logger = logging.getLogger('chidiya')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler('songbird.log')
+fh = logging.FileHandler('chidiya.log')
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level
@@ -40,10 +40,13 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 
 # @brief Configuration read from the file
-config = None
-sampling_freq = None
-
+config_ = None
 args_ = None 
+
+# Global debug level
+verbosity_ = 0
+
+sampling_freq = None
 
 # Timestamping
 st = time.time()

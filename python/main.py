@@ -1,6 +1,6 @@
 """ Starting point of the program.
 
-Last modified: Tue Dec 16, 2014  04:30PM
+Last modified: Thu Dec 18, 2014  03:54PM
 
 """
     
@@ -17,13 +17,26 @@ import birdsong
 import globals as g
 import reader 
 import birdsong
+import pyhelper.print_utils as debug
 
 def main(config):
-    g.config = config
+
+    # Read audio data.
     af = reader.AudioFile(config.get('audio', 'filepath'))
     af.readData()
-    bs = birdsong.BirdSong(af.data)
-    bs.processData(sample_size = 2*1e5)
+
+    if g.args_.extract_notes:
+        debug.dump("STEP", "Extracting notes ...")
+        # Cool, now do the thingy on birdsong.
+        bs = birdsong.BirdSong(af.data)
+        bs.processData(sample_size = 2*1e5)
+    elif g.args_.process_notes:
+        debug.dump("STEP", "Processing notes to form songs ...")
+        debug.dump("TODO", [ " We are using an intermediate csv file "
+            " for data exchange.", " May be we can directly read from memory"
+            ]
+            )
+
 
 def configParser(file):
     try:
@@ -49,7 +62,7 @@ if __name__ == '__main__':
             , help = 'Recorded song (aiff format)'
             )
 
-    action.add_argument('--extract-notes', '-e'
+    action.add_argument('--extract_notes', '-e'
             , action = 'store_true'
             , help = 'Input song file in aifc format to extract notes.'
             )
@@ -70,17 +83,24 @@ if __name__ == '__main__':
 
     parser.add_argument('--config', '-c'
             , metavar='config file'
-            , default = 'birdsongs.conf'
+            , default = 'chidiya.conf'
             , required = True
             , help = "Configuration file to fine tune the processing"
+            )
+
+    parser.add_argument('--verbose', '-v'
+            , default = 0
+            , help = "Verbosity level. Default 0"
             )
 
     class Args: pass 
     args = Args()
     parser.parse_args(namespace=args)
-    config = configParser(args.config)
     g.args_ = args
+    g.config_ = configParser(args.config)
 
-    config.add_section("audio")
-    config.set("audio", "filepath", args.input_song)
-    main(config)
+    # Save these config variables to global module.
+
+    g.config_.add_section("audio")
+    g.config_.set("audio", "filepath", args.input_song)
+    main(g.config_)

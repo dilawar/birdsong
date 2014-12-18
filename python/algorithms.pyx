@@ -82,9 +82,9 @@ cdef class Algorithms:
         # 3. Delete the note from the figure (make all pixel equal to 255).
         # 4. Go to step 1.
         minPixel = self.image.min()
-        fracOfAvg = float(g.config.get('note', 'maxval_pixal')) 
+        fracOfAvg = float(g.config_.get('note', 'maxval_pixal')) 
         maxvalOfStartPixel = fracOfAvg * self.image.mean()
-        threshold = float(g.config.get('note', 'boundary_threshold')) * maxvalOfStartPixel
+        threshold = float(g.config_.get('note', 'boundary_threshold')) * maxvalOfStartPixel
         g.logger.debug("++ Slither start point {}, threshold {}".format(
             maxvalOfStartPixel
             , threshold)
