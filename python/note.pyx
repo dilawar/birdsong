@@ -1,6 +1,6 @@
 """note.py: Class representing a note.
 
-Last modified: Sat Jan 18, 2014  05:01PM
+Last modified: Thu Dec 18, 2014  11:39PM
 
 """
     
@@ -16,6 +16,7 @@ __status__           = "Development"
 import scipy
 import numpy as np
 import cv2
+from lxml import etree
 import globals as g
 
 cdef class Note:
@@ -24,6 +25,7 @@ cdef class Note:
     cdef double energy, width, height
     cdef int computed, geometryComputed
     cdef int startx, starty
+    cdef double xscale
 
     property points:
         def __get__(self): return self.points
@@ -45,6 +47,10 @@ cdef class Note:
         def __get__(self): return self.height
         def __set__(self, v): self.height = v
 
+    property xscale:
+        def __get__(self): return self.xscale 
+        def __set__(self, v): self.xscale = v
+
     def __cinit__(self, x, y):
         self.origin = (x, y)
         self.energy = 0.0
@@ -58,8 +64,9 @@ cdef class Note:
         self.geometryComputed = 0
         self.startx = 0
         self.starty = 0
+        self.xscale = 1.0
 
-    def computeAll(self, image):
+    cpdef computeAll(self, image):
         if self.computed == 0:
             self.computeGeometry()
             for p in self.points:
@@ -83,24 +90,39 @@ cdef class Note:
                 )
         return msg
 
-    def show(self):
+    cpdef toElementTree(self, xml=True):
         if self.computed == 0:
             raise UserWarning("One or more parameter(s) of your note is not "
                     "computed. Please use self.computeAll(img) function at "
                     " appropriate place"
                     )
-        msg = "startx={};starty={};width={};height={};energy={};points={}".format(
-                self.startx
-                , self.starty
-                , self.width
-                , self.height
-                , self.energy
-                , self.points 
-                )
-        return msg
+        # Else create a xml representation.
+        noteExp = etree.Element("note")
+        noteExp.set('xscale', "%s" % g.xscale)
+        noteExp.set('yscale',"%s" % g.yscale)
+
+        startxElem = etree.SubElement(noteExp, "startx")
+        startxElem.text = "%s" % self.startx
+        startyElem = etree.SubElement(noteExp, "starty")
+        startyElem.text = "%s" % self.starty
+
+        pointsElem = etree.SubElement(noteExp, "points")
+        for p in self.points:
+            pElem = etree.SubElement(pointsElem, "point")
+            xElem = etree.SubElement(pElem, "x")
+            yElem = etree.SubElement(pElem, "y")
+            xElem.text = "%s" % p[0]
+            yElem.text = "%s" % p[1]
+
+        return noteExp
+
+    cpdef toXML(self):
+        """Convert note to xml string """
+        nXml = self.toElementTree()
+        return etree.tostring(nXml, pretty_print=True)
 
 
-    def addPoint(self, point):
+    cpdef addPoint(self, point):
         assert point >= [0, 0], "Got %s " % point
         y, x = point
         self.xpoints.append(x)
@@ -116,12 +138,13 @@ cdef class Note:
 #
 # @return None.
 
-    def plot(self, img, **kwargs):
+    cpdef plot(self, img):
         points = [[p[1], p[0]] for p in self.points]
         points = np.asarray(points)
         cv2.fillConvexPoly(img, points, 1)
 
     
+    # This function is also called from python. Therefore cpdef instead of cdef.
     cpdef isValid(self):
         """Check if a given note is acceptable or note.
         """

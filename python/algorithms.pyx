@@ -113,7 +113,7 @@ cdef class Algorithms:
     #
     # @return 
     cdef slither(self, startx, starty, startValue, threshold):
-        assert(startValue == self.image.min()), "Min in image can't be smaller than startValue"
+        assert startValue == self.image.min(), "Min in image can't be smaller than startValue"
         assert threshold > startValue, "Threshold should be larger than startval"
         n = note.Note(startx, starty)
         points = []

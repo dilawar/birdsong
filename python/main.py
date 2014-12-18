@@ -1,6 +1,6 @@
 """ Starting point of the program.
 
-Last modified: Thu Dec 18, 2014  03:54PM
+Last modified: Thu Dec 18, 2014  08:58PM
 
 """
     
@@ -17,7 +17,8 @@ import birdsong
 import globals as g
 import reader 
 import birdsong
-import pyhelper.print_utils as debug
+import pyhelper.print_utils as pu
+import process_notes
 
 def main(config):
 
@@ -26,17 +27,15 @@ def main(config):
     af.readData()
 
     if g.args_.extract_notes:
-        debug.dump("STEP", "Extracting notes ...")
+        pu.dump("STEP", "Extracting notes ...")
         # Cool, now do the thingy on birdsong.
         bs = birdsong.BirdSong(af.data)
-        bs.processData(sample_size = 2*1e5)
-    elif g.args_.process_notes:
-        debug.dump("STEP", "Processing notes to form songs ...")
-        debug.dump("TODO", [ " We are using an intermediate csv file "
-            " for data exchange.", " May be we can directly read from memory"
-            ]
-            )
+        bs.extractNotes()
 
+    elif g.args_.process_notes:
+        pu.dump("STEP", "Processing notes to form songs ...")
+        pn = process_notes.ProcessNotes()
+        pn.analyze()
 
 def configParser(file):
     try:
@@ -77,7 +76,6 @@ if __name__ == '__main__':
     parser.add_argument('--note_file', '-nf'
             , required = False
             , default = 'notes.dat'
-            , type = argparse.FileType('r')
             , help = 'File where notes are stored and read from'
             )
 
@@ -100,7 +98,6 @@ if __name__ == '__main__':
     g.config_ = configParser(args.config)
 
     # Save these config variables to global module.
-
     g.config_.add_section("audio")
     g.config_.set("audio", "filepath", args.input_song)
     main(g.config_)

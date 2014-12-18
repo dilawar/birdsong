@@ -46,7 +46,9 @@ args_ = None
 # Global debug level
 verbosity_ = 0
 
-sampling_freq = None
+sampling_freq = 0.0
+xscale = 1.0
+yscale = 1.0
 
 # Timestamping
 st = time.time()

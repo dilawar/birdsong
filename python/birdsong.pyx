@@ -2,7 +2,7 @@
 
     Process the data in birdsong.
 
-Last modified: Tue Dec 16, 2014  02:25PM
+Last modified: Fri Dec 19, 2014  01:03AM
 
 """
     
@@ -25,6 +25,7 @@ from scipy import ndimage
 import numpy as np
 import pylab
 import algorithms
+import lxml.etree as etree
 
 import os
 import sys
@@ -106,7 +107,7 @@ class BirdSong:
             return True
 
 
-    def processData(self, **kwargs):
+    def extractNotes(self, **kwargs):
         g.logger.info("STEP: Processing the speech data")
         self.time = float(g.config_.get('global', 'time'))
 
@@ -136,12 +137,21 @@ class BirdSong:
                 , float(g.config_.get('global', 'x_zoom'))
                 ]
 
-        g.logger.warn("Zooming in image: %s " % zoom)
+        pu.dump("INFO", "Zooming in image in both directions: %s " % zoom)
         self.imageMat = ndimage.interpolation.zoom(
                 self.imageMat
                 , zoom
                 , order = 5
                 , prefilter = True
+                )
+
+        g.xscale = 128.0 / (float(g.config_.get('global', 'x_zoom')) * g.sampling_freq)
+        g.yscale = 1.0 / float(g.config_.get('global', 'y_zoom')) 
+        pu.dump("INFO"
+                , [ "Scaling spectogram. Computing scales"
+                    , "xscale = %s " % g.xscale 
+                    , "yscale = %s " % g.yscale 
+                    ]
                 )
 
         # TODO: We should not save the png file rather work directory on numpy
@@ -152,13 +162,13 @@ class BirdSong:
         pylab.imsave(self.filename, self.imageMat)
         pylab.close()
         self.getNotes()
-        #self.plotNotes("notes.png")
-        self.plotNotes(filename = None)
+        self.plotNotes("notes.png")
+        #self.plotNotes(filename = None)
 
     def getNotes(self, **kwargs):
         g.logger.info("Read image in GRAYSCALE mode to detect edges")
         self.image = cv2.imread(self.filename, 0)
-        assert self.image.max() <= 256, "Expecting 256, got %s" % self.image.max()
+        assert self.image.max() <= 255, "Expecting <= 255, got %s" % self.image.max()
 
         if int(g.config_.get('global', 'autocrop')) != 0:
             raise Exception("Developer error: Dont' crop")
@@ -179,17 +189,16 @@ class BirdSong:
         self.filterAndSort()
         assert len(self.notes) > 0, "There must be non-zero notes"
 
-
         pu.dump("INFO", [ "Writings notes to {}".format(g.args_.note_file)])
 
-
-        #if g.config_.get("note", "save_notes").strip() in ["yes", "Yes", "YES"]:
-            #pickleFile = g.config_.get('note', 'save_file')
-            #g.logger.info("Saving all notes : %s" % pickleFile)
-            #with open(pickleFile, "wb") as f:
-                #for n in self.notes:
-        #            f.write(n.show()+"\n")
-        self.findSongs()
+        noteXml = etree.Element("notes")
+        with open(g.args_.note_file, "wb") as f:
+            for n in self.notes:
+                noteXml.append(n.toElementTree())
+        with open(g.args_.note_file, "w") as xmlFile:
+            pu.dump("INFO", "Writing notes to %s" % xmlFile.name)
+            xmlFile.write(etree.tostring(noteXml, pretty_print=True))
+        
 
     def findSongs(self):
         """Find songs in collection of notes.
