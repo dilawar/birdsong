@@ -1,6 +1,6 @@
 """note.py: Class representing a note.
 
-Last modified: Thu Dec 18, 2014  11:39PM
+Last modified: Fri Dec 19, 2014  01:13AM
 
 """
     
@@ -105,6 +105,15 @@ cdef class Note:
         startxElem.text = "%s" % self.startx
         startyElem = etree.SubElement(noteExp, "starty")
         startyElem.text = "%s" % self.starty
+
+        widthElem = etree.SubElement(noteExp, "width")
+        widthElem.text = "%s" % self.width 
+
+        heightElem = etree.SubElement(noteExp, "height")
+        heightElem.text = "%s" % self.height
+
+        energyElem = etree.SubElement(noteExp, "energy")
+        energyElem.text = "%s" % self.energy
 
         pointsElem = etree.SubElement(noteExp, "points")
         for p in self.points:
