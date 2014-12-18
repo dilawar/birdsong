@@ -14,3 +14,16 @@ progress. It claims to do the following:
   variation. It calls them song.
 
 
+## How to use the program 
+
+Since it is a cython program, you need to build the application using `setup.py`
+file.
+
+    $ python setup.py build_ext --inplace
+
+This should compile the cython files. The entry point of chidiya is `main.py`
+file. You will get a detailed description if you execute the following:
+
+    $ python main.py --help
+
+
